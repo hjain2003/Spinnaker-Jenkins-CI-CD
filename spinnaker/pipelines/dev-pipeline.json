@@ -1,0 +1,71 @@
+{
+  "application": "myapp",
+  "name": "Deploy to Dev",
+  "stages": [
+    {
+      "name": "Bake Docker Image",
+      "refId": "1",
+      "type": "bakeManifest",
+      "requisiteStageRefIds": [],
+      "inputArtifacts": [],
+      "namespace": "dev"
+    },
+    {
+      "name": "Deploy to Dev",
+      "refId": "2",
+      "type": "deployManifest",
+      "requisiteStageRefIds": ["1"],
+      "account": "dev-account",
+      "cloudProvider": "kubernetes",
+      "manifestArtifactAccount": "embedded-artifact",
+      "manifests": [
+        {
+          "apiVersion": "apps/v1",
+          "kind": "Deployment",
+          "metadata": {
+            "name": "myapp-dev",
+            "namespace": "dev"
+          },
+          "spec": {
+            "replicas": 2,
+            "selector": {
+              "matchLabels": {
+                "app": "myapp"
+              }
+            },
+            "template": {
+              "metadata": {
+                "labels": {
+                  "app": "myapp"
+                }
+              },
+              "spec": {
+                "containers": [
+                  {
+                    "name": "myapp",
+                    "image": "302263069749.dkr.ecr.us-west-1.amazonaws.com/myapp:dev",
+                    "ports": [
+                      {
+                        "containerPort": 80
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "enabled": true,
+      "type": "git",
+      "branch": "dev",
+      "project": "myorg",
+      "slug": "myapp",
+      "source": "github"
+    }
+  ]
+}
