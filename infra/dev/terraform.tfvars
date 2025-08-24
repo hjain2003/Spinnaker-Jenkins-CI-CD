@@ -1,0 +1,7 @@
+aws_region      = "us-west-1"
+environment     = "dev"
+app_name        = "myapp"
+vpc_id          = "vpc-0603547ccdb32abab"
+subnet_id       = "subnet-08cdd6e4f20234bb8"
+ecs_instance_type = "t3.medium"
+s3_bucket_name  = "myappdevbucketharsh"
