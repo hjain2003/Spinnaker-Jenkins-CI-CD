@@ -1,0 +1,69 @@
+{
+  "application": "myapp",
+  "name": "Deploy to Prod",
+  "stages": [
+    {
+      "name": "Manual Judgment Before Prod",
+      "refId": "1",
+      "type": "manualJudgment",
+      "requisiteStageRefIds": []
+    },
+    {
+      "name": "Deploy to Prod",
+      "refId": "2",
+      "type": "deployManifest",
+      "requisiteStageRefIds": ["1"],
+      "account": "prod-account",
+      "cloudProvider": "kubernetes",
+      "manifestArtifactAccount": "embedded-artifact",
+      "manifests": [
+        {
+          "apiVersion": "apps/v1",
+          "kind": "Deployment",
+          "metadata": {
+            "name": "myapp-prod",
+            "namespace": "prod"
+          },
+          "spec": {
+            "replicas": 3,
+            "selector": {
+              "matchLabels": {
+                "app": "myapp"
+              }
+            },
+            "template": {
+              "metadata": {
+                "labels": {
+                  "app": "myapp"
+                }
+              },
+              "spec": {
+                "containers": [
+                  {
+                    "name": "myapp",
+                    "image": "302263069749.dkr.ecr.us-west-1.amazonaws.com/myapp:prod",
+                    "ports": [
+                      {
+                        "containerPort": 80
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "enabled": true,
+      "type": "git",
+      "branch": "main",
+      "project": "myorg",
+      "slug": "myapp",
+      "source": "github"
+    }
+  ]
+}
