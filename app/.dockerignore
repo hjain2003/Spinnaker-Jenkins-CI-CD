@@ -1,0 +1,21 @@
+# Ignore node_modules (they'll be re-installed in image)
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Build output (will be re-created during docker build)
+build
+
+# Git files
+.git
+.gitignore
+
+# OS-specific / IDE clutter
+.DS_Store
+Thumbs.db
+.vscode
+*.swp
+
+# Docker-specific
+Dockerfile
+.dockerignore

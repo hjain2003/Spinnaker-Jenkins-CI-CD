@@ -1,0 +1,49 @@
+pipeline {
+  agent any
+  environment {
+    AWS_REGION = 'us-west-1'                     // change if needed
+    ECR_REPO = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/my-react-app"
+    S3_BUCKET = "my-react-app-static-<yourid>"  // create via terraform or AWS console
+  }
+  stages {
+    stage('Checkout') {
+      steps { git 'https://github.com/<yourusername>/my-ci-cd-demo.git' }
+    }
+    stage('Build React app') {
+      steps {
+        dir('app') {
+          sh 'npm ci'
+          sh 'npm run build'
+        }
+      }
+    }
+
+    stage('Upload static site to S3') {
+      steps {
+        // Assumes aws credentials available on Jenkins agent env or via credentials binding
+        dir('app') {
+          sh 'aws s3 sync build/ s3://${S3_BUCKET} --acl public-read'
+          # Make sure site hosting enabled on S3 (see next instructions)
+        }
+      }
+    }
+
+    stage('Docker build & push to ECR') {
+      steps {
+        script {
+          // ensure login - requires AWS creds available in environment
+          sh "aws ecr get-login-password --region ${env.AWS_REGION} | docker login --username AWS --password-stdin ${env.ECR_REPO}"
+          dir('app') {
+            sh "docker build -t my-react-app:latest ."
+            sh "docker tag my-react-app:latest ${env.ECR_REPO}:latest"
+            sh "docker push ${env.ECR_REPO}:latest"
+          }
+        }
+      }
+    }
+  }
+  post {
+    success { echo 'CI pipeline succeeded' }
+    failure { echo 'CI pipeline failed' }
+  }
+}
